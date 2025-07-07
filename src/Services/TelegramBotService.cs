@@ -1,0 +1,135 @@
+using Telegram.Bot;
+using Telegram.Bot.Types;
+using Telegram.Bot.Polling;
+using JobScraperBot.Interfaces;
+using Microsoft.Extensions.Logging;
+
+namespace JobScraperBot.Services;
+
+public partial class TelegramBotService(
+    IChatBotNotifierService chatBot,
+    IIgnoredJobRepository ignoredJobRepository,
+    IJobScraperService jobScraperService,
+    ILogger<TelegramBotService> logger,
+    ITelegramBotClient botClient,
+    IUnitOfWork unitOfWork,
+    IUserRepository userRepository
+) : ITelegramBotService
+{
+    private readonly Dictionary<string, Models.User> _userCache = [];
+    private readonly IChatBotNotifierService _chatBot = chatBot;
+    private readonly IIgnoredJobRepository _ignoredJobRepository = ignoredJobRepository;
+    private readonly IJobScraperService _jobScraperService = jobScraperService;
+    private readonly ILogger<TelegramBotService> _logger = logger;
+    private readonly ITelegramBotClient _botClient = botClient;
+    private readonly IUnitOfWork _unitOfWork = unitOfWork;
+    private readonly IUserRepository _userRepository = userRepository;
+
+    public async Task StartAsync(CancellationToken cancellationToken)
+    {
+        await _botClient.SetMyCommands(GetChatBotCommands(), cancellationToken: cancellationToken);
+
+        ReceiverOptions options = new()
+        {
+            DropPendingUpdates = true
+        };
+
+        _botClient.StartReceiving(
+            HandleUpdateAsync,
+            HandleErrorAsync,
+            options,
+            cancellationToken
+        );
+
+        User? me = await _botClient.GetMe(cancellationToken);
+
+        _logger.Log(LogLevel.Information, "INICIANDO BOT");
+
+        Console.WriteLine($"Bot iniciado. Username: @{me.Username}");
+    }
+
+    private async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+    {
+        if (update.Message is { Text: { } })
+        {
+            await HandleMessageAsync(update.Message, cancellationToken);
+        }
+        else if (update.CallbackQuery?.Data is not null)
+        {
+            await HandleCallbackQueryAsync(update.CallbackQuery, cancellationToken);
+        }
+    }
+
+    private async Task HandleMessageAsync(Message message, CancellationToken cancellationToken)
+    {
+        string chatId = message.Chat.Id.ToString();
+        string text = message.Text!;
+
+        Models.User user = await GetUserByChatIdAsync(chatId, cancellationToken);
+
+        if (user.IsAwaitingForKeywords)
+        {
+            await HandleKeywordsCommandResponseAsync(user, text, cancellationToken);
+
+            return;
+
+        }
+
+        Dictionary<string, Func<Task>> commandHandlers = new()
+        {
+            ["/help"] = () => HandleHelpCommandAsync(chatId),
+            ["/ignore"] = () => HandleIgnoreCommandAsync(chatId, cancellationToken),
+            ["/keywords"] = () => HandleKeywordsCommandAsync(user, cancellationToken),
+            ["/limit"] = () => HandleLimitCommandAsync(chatId, cancellationToken),
+            ["/postedtime"] = () => HandlePostedTimeCommandAsync(chatId, cancellationToken),
+            ["/reset"] = () => HandleResetCommandAsync(chatId, cancellationToken),
+            ["/search"] = () => HandleSearchCommandAsync(user, cancellationToken),
+            ["/start"] = () => HandleStartCommandAsync(chatId, cancellationToken),
+            ["/status"] = () => HandleStatusCommandAsync(user, cancellationToken),
+            ["/worktype"] = () => HandleWorkTypeCommandAsync(chatId, cancellationToken),
+        };
+
+        if (commandHandlers.TryGetValue(text, out Func<Task>? handler))
+        {
+            await handler();
+        }
+    }
+
+    private async Task HandleCallbackQueryAsync(CallbackQuery callbackQuery, CancellationToken cancellationToken)
+    {
+        string chatId = callbackQuery.Message?.Chat.Id.ToString() ?? "";
+        string data = callbackQuery.Data ?? "";
+
+        Models.User user = await GetUserByChatIdAsync(chatId, cancellationToken);
+
+        Dictionary<string, Func<string, Task>> prefixHandlers = new()
+        {
+            ["ignore_"] = value => HandleIgnoreCommandResponseAsync(user, value, cancellationToken),
+            ["limit_"] = value => HandleLimitCommandResponseAsync(user, value, cancellationToken),
+            ["postedtime_"] = value => HandlePostedTimeCommandResponseAsync(user, value, cancellationToken),
+            ["reset_"] = value => HandleResetCommandResponseAsync(user, value, cancellationToken),
+            ["worktype_"] = value => HandleWorkTypeCommandResponseAsync(user, value, cancellationToken),
+        };
+
+        foreach ((string prefix, Func<string, Task> handler) in prefixHandlers)
+        {
+            if (data.StartsWith(prefix))
+            {
+                string value = data[prefix.Length..];
+
+                await handler(value);
+
+                break;
+            }
+        }
+
+        await _botClient.AnswerCallbackQuery(callbackQuery.Id, cancellationToken: cancellationToken);
+    }
+
+    private Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
+    {
+        Console.WriteLine($"Erro no bot: {exception.Message}");
+
+        return Task.CompletedTask;
+    }
+}
