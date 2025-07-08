@@ -1,10 +1,10 @@
-namespace JobScraperBot.Records;
+namespace LinkJoBot.Records;
 
 public record JobFoundMessageData(
     string Title,
     string Company,
     string Region,
-    string EasyApply,
+    string HasEasyApply,
     string PostedTime,
     string JobIndex,
     string TotalJobs,

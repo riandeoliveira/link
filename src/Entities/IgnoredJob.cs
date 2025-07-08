@@ -1,9 +1,9 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace JobScraperBot.Models;
+namespace LinkJoBot.Entities;
 
 [Table("ignored_jobs")]
-public sealed class IgnoredJob : BaseModel
+public sealed class IgnoredJob : BaseEntity
 {
     [Column("user_id")]
     public required Guid UserId { get; set; }
@@ -12,5 +12,5 @@ public sealed class IgnoredJob : BaseModel
     public required string JobId { get; set; }
 
     [ForeignKey("UserId")]
-    public User User { get; set; } = null!;
+    public User? User { get; set; }
 }

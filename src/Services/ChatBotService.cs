@@ -1,26 +1,26 @@
-using Telegram.Bot;
-using Telegram.Bot.Types;
-using Telegram.Bot.Polling;
-using JobScraperBot.Interfaces;
+using LinkJoBot.Interfaces;
 using Microsoft.Extensions.Logging;
+using Telegram.Bot;
+using Telegram.Bot.Polling;
+using Telegram.Bot.Types;
 
-namespace JobScraperBot.Services;
+namespace LinkJoBot.Services;
 
-public partial class TelegramBotService(
+public partial class ChatBotService(
     IChatBotNotifierService chatBot,
     IIgnoredJobRepository ignoredJobRepository,
-    IJobScraperService jobScraperService,
-    ILogger<TelegramBotService> logger,
+    IJobSearchService jobSearchService,
+    ILogger<ChatBotService> logger,
     ITelegramBotClient botClient,
     IUnitOfWork unitOfWork,
     IUserRepository userRepository
-) : ITelegramBotService
+) : IChatBotService
 {
-    private readonly Dictionary<string, Models.User> _userCache = [];
+    private readonly Dictionary<string, Entities.User> _userCache = [];
     private readonly IChatBotNotifierService _chatBot = chatBot;
     private readonly IIgnoredJobRepository _ignoredJobRepository = ignoredJobRepository;
-    private readonly IJobScraperService _jobScraperService = jobScraperService;
-    private readonly ILogger<TelegramBotService> _logger = logger;
+    private readonly IJobSearchService _jobSearchService = jobSearchService;
+    private readonly ILogger<IChatBotService> _logger = logger;
     private readonly ITelegramBotClient _botClient = botClient;
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
     private readonly IUserRepository _userRepository = userRepository;
@@ -29,17 +29,9 @@ public partial class TelegramBotService(
     {
         await _botClient.SetMyCommands(GetChatBotCommands(), cancellationToken: cancellationToken);
 
-        ReceiverOptions options = new()
-        {
-            DropPendingUpdates = true
-        };
+        ReceiverOptions options = new() { DropPendingUpdates = true };
 
-        _botClient.StartReceiving(
-            HandleUpdateAsync,
-            HandleErrorAsync,
-            options,
-            cancellationToken
-        );
+        _botClient.StartReceiving(HandleUpdateAsync, HandleErrorAsync, options, cancellationToken);
 
         User? me = await _botClient.GetMe(cancellationToken);
 
@@ -48,7 +40,11 @@ public partial class TelegramBotService(
         Console.WriteLine($"Bot iniciado. Username: @{me.Username}");
     }
 
-    private async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+    private async Task HandleUpdateAsync(
+        ITelegramBotClient botClient,
+        Update update,
+        CancellationToken cancellationToken
+    )
     {
         if (update.Message is { Text: { } })
         {
@@ -65,14 +61,13 @@ public partial class TelegramBotService(
         string chatId = message.Chat.Id.ToString();
         string text = message.Text!;
 
-        Models.User user = await GetUserByChatIdAsync(chatId, cancellationToken);
+        Entities.User user = await GetOrCreateUserByChatIdAsync(chatId, cancellationToken);
 
         if (user.IsAwaitingForKeywords)
         {
             await HandleKeywordsCommandResponseAsync(user, text, cancellationToken);
 
             return;
-
         }
 
         Dictionary<string, Func<Task>> commandHandlers = new()
@@ -84,7 +79,7 @@ public partial class TelegramBotService(
             ["/postedtime"] = () => HandlePostedTimeCommandAsync(chatId, cancellationToken),
             ["/reset"] = () => HandleResetCommandAsync(chatId, cancellationToken),
             ["/search"] = () => HandleSearchCommandAsync(user, cancellationToken),
-            ["/start"] = () => HandleStartCommandAsync(chatId, cancellationToken),
+            ["/start"] = () => HandleStartCommandAsync(chatId),
             ["/status"] = () => HandleStatusCommandAsync(user, cancellationToken),
             ["/worktype"] = () => HandleWorkTypeCommandAsync(chatId, cancellationToken),
         };
@@ -95,20 +90,25 @@ public partial class TelegramBotService(
         }
     }
 
-    private async Task HandleCallbackQueryAsync(CallbackQuery callbackQuery, CancellationToken cancellationToken)
+    private async Task HandleCallbackQueryAsync(
+        CallbackQuery callbackQuery,
+        CancellationToken cancellationToken
+    )
     {
         string chatId = callbackQuery.Message?.Chat.Id.ToString() ?? "";
         string data = callbackQuery.Data ?? "";
 
-        Models.User user = await GetUserByChatIdAsync(chatId, cancellationToken);
+        Entities.User user = await GetOrCreateUserByChatIdAsync(chatId, cancellationToken);
 
         Dictionary<string, Func<string, Task>> prefixHandlers = new()
         {
             ["ignore_"] = value => HandleIgnoreCommandResponseAsync(user, value, cancellationToken),
             ["limit_"] = value => HandleLimitCommandResponseAsync(user, value, cancellationToken),
-            ["postedtime_"] = value => HandlePostedTimeCommandResponseAsync(user, value, cancellationToken),
+            ["postedtime_"] = value =>
+                HandlePostedTimeCommandResponseAsync(user, value, cancellationToken),
             ["reset_"] = value => HandleResetCommandResponseAsync(user, value, cancellationToken),
-            ["worktype_"] = value => HandleWorkTypeCommandResponseAsync(user, value, cancellationToken),
+            ["worktype_"] = value =>
+                HandleWorkTypeCommandResponseAsync(user, value, cancellationToken),
         };
 
         foreach ((string prefix, Func<string, Task> handler) in prefixHandlers)
@@ -123,10 +123,17 @@ public partial class TelegramBotService(
             }
         }
 
-        await _botClient.AnswerCallbackQuery(callbackQuery.Id, cancellationToken: cancellationToken);
+        await _botClient.AnswerCallbackQuery(
+            callbackQuery.Id,
+            cancellationToken: cancellationToken
+        );
     }
 
-    private Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
+    private Task HandleErrorAsync(
+        ITelegramBotClient botClient,
+        Exception exception,
+        CancellationToken cancellationToken
+    )
     {
         Console.WriteLine($"Erro no bot: {exception.Message}");
 

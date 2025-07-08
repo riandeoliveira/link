@@ -1,12 +1,12 @@
-using JobScraperBot.Records;
+using LinkJoBot.Records;
 
-namespace JobScraperBot.Interfaces;
+namespace LinkJoBot.Interfaces;
 
 public interface IChatBotNotifierService
 {
-    public Task SendErrorMessageAsync(string chatId, params string[] lines);
+    public Task SendErrorMessageAsync(string chatId, string message);
 
     public Task SendJobFoundMessageAsync(string chatId, JobFoundMessageData data);
 
-    public Task SendMultilineMessageAsync(string chatId, params string[] lines);
+    public Task SendTextMessageAsync(string chatId, string message);
 }

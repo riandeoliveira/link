@@ -1,9 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace JobScraperBot.Models;
+namespace LinkJoBot.Entities;
 
-public abstract class BaseModel
+public abstract class BaseEntity
 {
     [Key]
     [Column("id")]

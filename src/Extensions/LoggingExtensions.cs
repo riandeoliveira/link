@@ -1,8 +1,7 @@
 using Microsoft.Extensions.Hosting;
-
 using Serilog;
 
-namespace JobScraperBot.Extensions;
+namespace LinkJoBot.Extensions;
 
 public static class LoggingExtensions
 {

@@ -1,4 +1,4 @@
-namespace JobScraperBot.Interfaces;
+namespace LinkJoBot.Interfaces;
 
 public interface IUnitOfWork
 {

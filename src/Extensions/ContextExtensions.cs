@@ -1,17 +1,21 @@
-using JobScraperBot.Constants;
-using JobScraperBot.Contexts;
-
+using LinkJoBot.Constants;
+using LinkJoBot.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace JobScraperBot.Extensions;
+namespace LinkJoBot.Extensions;
 
 public static class ContextExtensions
 {
     public static IHostBuilder ConfigureContext(this IHostBuilder builder)
     {
-        builder.ConfigureServices((context, services) => services.AddDbContext<AppDbContext>(options => options.UseNpgsql(Database.ConnectionString)));
+        builder.ConfigureServices(
+            (context, services) =>
+                services.AddDbContext<AppDbContext>(options =>
+                    options.UseNpgsql(Database.ConnectionString)
+                )
+        );
 
         return builder;
     }

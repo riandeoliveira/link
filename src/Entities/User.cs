@@ -1,11 +1,10 @@
 using System.ComponentModel.DataAnnotations.Schema;
+using LinkJoBot.Enums;
 
-using JobScraperBot.Enums;
-
-namespace JobScraperBot.Models;
+namespace LinkJoBot.Entities;
 
 [Table("users")]
-public sealed class User : BaseModel
+public sealed class User : BaseEntity
 {
     [Column("chat_id")]
     public required string ChatId { get; set; }

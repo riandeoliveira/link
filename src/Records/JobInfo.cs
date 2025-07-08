@@ -1,9 +1,9 @@
-namespace JobScraperBot.Records;
+namespace LinkJoBot.Records;
 
-public record Job(
+public record JobInfo(
     string? Title,
     string? Company,
     string? Region,
-    bool EasyApply,
+    bool HasEasyApply,
     string? PostedTime
 );

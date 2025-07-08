@@ -1,11 +1,9 @@
-using JobScraperBot.Contexts;
-using JobScraperBot.Interfaces;
-using JobScraperBot.Models;
+using LinkJoBot.Contexts;
+using LinkJoBot.Entities;
+using LinkJoBot.Interfaces;
 
-namespace JobScraperBot.Repositories;
+namespace LinkJoBot.Repositories;
 
-public sealed class IgnoredJobRepository(
-    AppDbContext context
-) : Repository<IgnoredJob>(context), IIgnoredJobRepository
-{
-}
+public sealed class IgnoredJobRepository(AppDbContext context)
+    : Repository<IgnoredJob>(context),
+        IIgnoredJobRepository { }

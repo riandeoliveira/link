@@ -1,12 +1,11 @@
-using JobScraperBot.Enums;
-using JobScraperBot.Models;
-
+using LinkJoBot.Entities;
+using LinkJoBot.Enums;
 using Telegram.Bot;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace JobScraperBot.Services;
+namespace LinkJoBot.Services;
 
-public partial class TelegramBotService
+public partial class ChatBotService
 {
     public async Task HandleHelpCommandAsync(string chatId)
     {
@@ -32,7 +31,11 @@ public partial class TelegramBotService
         );
     }
 
-    public async Task HandleIgnoreCommandResponseAsync(User user, string response, CancellationToken cancellationToken)
+    public async Task HandleIgnoreCommandResponseAsync(
+        User user,
+        string response,
+        CancellationToken cancellationToken
+    )
     {
         bool ignoreJobsFound = bool.Parse(response);
 
@@ -43,14 +46,14 @@ public partial class TelegramBotService
 
         if (ignoreJobsFound)
         {
-            await _chatBot.SendMultilineMessageAsync(
+            await _chatBot.SendTextMessageAsync(
                 user.ChatId,
                 "✅ Vagas já encontradas não aparecerão novamente a partir de agora!"
             );
         }
         else
         {
-            await _chatBot.SendMultilineMessageAsync(
+            await _chatBot.SendTextMessageAsync(
                 user.ChatId,
                 "✅ Você receberá vagas que já foram encontradas anteriormente!"
             );
@@ -64,13 +67,17 @@ public partial class TelegramBotService
         await _userRepository.UpdateAsync(user);
         await _unitOfWork.CommitAsync(cancellationToken);
 
-        await _chatBot.SendMultilineMessageAsync(
+        await _chatBot.SendTextMessageAsync(
             user.ChatId,
             "Digite as palavras-chaves que serão usadas na busca:"
         );
     }
 
-    public async Task HandleKeywordsCommandResponseAsync(User user, string response, CancellationToken cancellationToken)
+    public async Task HandleKeywordsCommandResponseAsync(
+        User user,
+        string response,
+        CancellationToken cancellationToken
+    )
     {
         string keywords = response.Trim();
 
@@ -80,11 +87,13 @@ public partial class TelegramBotService
         await _userRepository.UpdateAsync(user);
         await _unitOfWork.CommitAsync(cancellationToken);
 
-        await _chatBot.SendMultilineMessageAsync(
+        await _chatBot.SendTextMessageAsync(
             user.ChatId,
-            "✅ Palavras-chave salvas como:",
-            "",
-            $@"<b>{keywords}</b>"
+            $"""
+            ✅ Palavras-chave salvas como:
+
+            <b>{keywords}</b>
+            """
         );
     }
 
@@ -99,7 +108,7 @@ public partial class TelegramBotService
                 [
                     InlineKeyboardButton.WithCallbackData("15", "limit_15"),
                     InlineKeyboardButton.WithCallbackData("20", "limit_20"),
-                ]
+                ],
             ]
         );
 
@@ -111,7 +120,11 @@ public partial class TelegramBotService
         );
     }
 
-    public async Task HandleLimitCommandResponseAsync(User user, string response, CancellationToken cancellationToken)
+    public async Task HandleLimitCommandResponseAsync(
+        User user,
+        string response,
+        CancellationToken cancellationToken
+    )
     {
         int limit = int.Parse(response);
 
@@ -120,15 +133,20 @@ public partial class TelegramBotService
         await _userRepository.UpdateAsync(user);
         await _unitOfWork.CommitAsync(cancellationToken);
 
-        await _chatBot.SendMultilineMessageAsync(
+        await _chatBot.SendTextMessageAsync(
             user.ChatId,
-            "✅ Limite salvo para buscar até:",
-            "",
-            $@"<b>{limit} vagas</b>"
+            $"""
+            ✅ Limite salvo para buscar até:
+
+            <b>{limit} vagas</b>
+            """
         );
     }
 
-    public async Task HandlePostedTimeCommandAsync(string chatId, CancellationToken cancellationToken)
+    public async Task HandlePostedTimeCommandAsync(
+        string chatId,
+        CancellationToken cancellationToken
+    )
     {
         InlineKeyboardMarkup inlineKeyboard = new(
             [
@@ -159,7 +177,7 @@ public partial class TelegramBotService
                         GetPostedTimeLabel(null),
                         "postedtime_null"
                     ),
-                ]
+                ],
             ]
         );
 
@@ -171,11 +189,13 @@ public partial class TelegramBotService
         );
     }
 
-    public async Task HandlePostedTimeCommandResponseAsync(User user, string response, CancellationToken cancellationToken)
+    public async Task HandlePostedTimeCommandResponseAsync(
+        User user,
+        string response,
+        CancellationToken cancellationToken
+    )
     {
-        int? postedTime = int.TryParse(response, out int parsed)
-            ? parsed
-            : null;
+        int? postedTime = int.TryParse(response, out int parsed) ? parsed : null;
 
         user.PostedTime = postedTime;
 
@@ -184,11 +204,13 @@ public partial class TelegramBotService
 
         string label = GetPostedTimeLabel(postedTime);
 
-        await _chatBot.SendMultilineMessageAsync(
+        await _chatBot.SendTextMessageAsync(
             user.ChatId,
-            "✅ Tempo máximo desde a publicação das vagas definido como:",
-            "",
-            $@"<b>{label}</b>"
+            $"""
+            ✅ Tempo máximo desde a publicação das vagas definido como:
+
+            <b>{label}</b>
+            """
         );
     }
 
@@ -211,16 +233,17 @@ public partial class TelegramBotService
         );
     }
 
-    public async Task HandleResetCommandResponseAsync(User user, string response, CancellationToken cancellationToken)
+    public async Task HandleResetCommandResponseAsync(
+        User user,
+        string response,
+        CancellationToken cancellationToken
+    )
     {
         bool reset = bool.Parse(response);
 
         if (!reset)
         {
-            await _chatBot.SendMultilineMessageAsync(
-                user.ChatId,
-                "Nenhum parâmetro redefinido."
-            );
+            await _chatBot.SendTextMessageAsync(user.ChatId, "Nenhum parâmetro redefinido.");
 
             return;
         }
@@ -234,39 +257,30 @@ public partial class TelegramBotService
         await _ignoredJobRepository.DeleteManyAsync(x => x.UserId == user.Id, cancellationToken);
         await _unitOfWork.CommitAsync(cancellationToken);
 
-        await _chatBot.SendMultilineMessageAsync(
+        await _chatBot.SendTextMessageAsync(
             user.ChatId,
-            "✅ Todos os parâmetros redefinidos com sucesso!",
-            "",
-            "Use /status para conferir!"
+            """
+            ✅ Todos os parâmetros redefinidos com sucesso!
+
+            Use /status para conferir!
+            """
         );
     }
 
     public async Task HandleSearchCommandAsync(User user, CancellationToken cancellationToken)
     {
-        await _jobScraperService.RunJobSearchAsync(user, cancellationToken);
+        await _jobSearchService.RunJobSearchAsync(user, cancellationToken);
     }
 
-    public async Task HandleStartCommandAsync(string chatId, CancellationToken cancellationToken)
+    public async Task HandleStartCommandAsync(string chatId)
     {
-        bool userAlreadyExists = await _userRepository.ExistAsync(x => x.ChatId == chatId, cancellationToken);
-
-        if (!userAlreadyExists)
-        {
-            User user = new()
-            {
-                ChatId = chatId,
-            };
-
-            await _userRepository.CreateAsync(user, cancellationToken);
-            await _unitOfWork.CommitAsync(cancellationToken);
-        }
-
-        await _chatBot.SendMultilineMessageAsync(
+        await _chatBot.SendTextMessageAsync(
             chatId,
-            "<b>👋 Olá! Eu sou o Job Scraper 👋</b>",
-            "",
-            "Vou te ajudar a encontrar vagas no LinkedIn de forma automática, com base nas suas preferências!"
+            """
+            <b>👋 Olá! Eu sou o LinkJoBot 👋</b>
+
+            Vou te ajudar a encontrar vagas no LinkedIn de forma automática, com base nas suas preferências!
+            """
         );
 
         await SendAvailableCommandsMessageAsync(chatId);
@@ -277,35 +291,40 @@ public partial class TelegramBotService
         string workTypeLabel = GetWorkTypeLabel(user.WorkType);
         string postedTimeLabel = GetPostedTimeLabel(user.PostedTime);
 
-        int totalIgnoredJobs = await _ignoredJobRepository.CountAsync(x => x.UserId == user.Id, cancellationToken);
+        int totalIgnoredJobs = await _ignoredJobRepository.CountAsync(
+            x => x.UserId == user.Id,
+            cancellationToken
+        );
 
-        await _chatBot.SendMultilineMessageAsync(
+        await _chatBot.SendTextMessageAsync(
             user.ChatId,
-            "Seus parâmetros configurados atualmente:",
-            "",
-            "<b>🏠 Modelo de trabalho:</b>",
-            "",
-            $@"{workTypeLabel}",
-            "",
-            "<b>💼 Vagas para buscar:</b>",
-            "",
-            $@"{user.Limit}",
-            "",
-            "<b>📅 Publicação de até:</b>",
-            "",
-            $@"{postedTimeLabel}",
-            "",
-            "<b>🔠 Palavras-chave:</b>",
-            "",
-            $@"{user.Keywords}",
-            "",
-            "<b>⛔ Ignorar vagas já encontradas:</b>",
-            "",
-            $@"{(user.IgnoreJobsFound ? "Sim" : "Não")}",
-            "",
-            "<b>🚫 Total de vagas já ignoradas:</b>",
-            "",
-            $@"{totalIgnoredJobs}"
+            $"""
+            Seus parâmetros configurados atualmente:
+
+            <b>🏠 Modelo de trabalho:</b>
+
+            {workTypeLabel}
+
+            <b>💼 Vagas para buscar:</b>
+
+            {user.Limit}
+
+            <b>📅 Publicação de até:</b>
+
+            {postedTimeLabel}
+
+            <b>🔠 Palavras-chave:</b>
+
+            {user.Keywords}
+
+            <b>⛔ Ignorar vagas já encontradas:</b>
+
+            {(user.IgnoreJobsFound ? "Sim" : "Não")}
+
+            <b>🚫 Total de vagas já ignoradas:</b>
+
+            {totalIgnoredJobs}
+            """
         );
     }
 
@@ -332,7 +351,7 @@ public partial class TelegramBotService
                         GetWorkTypeLabel(WorkType.All),
                         "worktype_All"
                     ),
-                ]
+                ],
             ]
         );
 
@@ -344,7 +363,11 @@ public partial class TelegramBotService
         );
     }
 
-    public async Task HandleWorkTypeCommandResponseAsync(User user, string response, CancellationToken cancellationToken)
+    public async Task HandleWorkTypeCommandResponseAsync(
+        User user,
+        string response,
+        CancellationToken cancellationToken
+    )
     {
         _ = Enum.TryParse(response, out WorkType workType);
 
@@ -355,11 +378,13 @@ public partial class TelegramBotService
 
         string label = GetWorkTypeLabel(workType);
 
-        await _chatBot.SendMultilineMessageAsync(
+        await _chatBot.SendTextMessageAsync(
             user.ChatId,
-            "✅ Modelo de trabalho salvo como:",
-            "",
-            $@"<b>{label}</b>"
+            $"""
+            ✅ Modelo de trabalho salvo como:
+
+            <b>{label}</b>
+            """
         );
     }
 }

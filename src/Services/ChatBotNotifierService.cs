@@ -1,66 +1,66 @@
 using System.Globalization;
-
-using JobScraperBot.Interfaces;
-using JobScraperBot.Records;
-
+using LinkJoBot.Interfaces;
+using LinkJoBot.Records;
 using Telegram.Bot;
+using Telegram.Bot.Types.Enums;
 
-namespace JobScraperBot.Services;
+namespace LinkJoBot.Services;
 
 public class ChatBotNotifierService(ITelegramBotClient botClient) : IChatBotNotifierService
 {
     private readonly ITelegramBotClient _botClient = botClient;
 
-    public async Task SendErrorMessageAsync(string chatId, params string[] lines)
+    public async Task SendErrorMessageAsync(string chatId, string message)
     {
-        string message = string.Join("\n", lines);
+        var currentDate = DateTime.Now;
 
-        DateTime currentDate = DateTime.Now;
+        var date = currentDate.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
+        var time = currentDate.ToString("HH:mm:ss", CultureInfo.InvariantCulture);
 
-        string date = currentDate.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
-        string time = currentDate.ToString("HH:mm:ss", CultureInfo.InvariantCulture);
-
-        await SendMultilineMessageAsync(
+        await SendTextMessageAsync(
             chatId,
-            "<b>❌ ERRO ❌</b>",
-            "",
-            $"<b>📅 Data:</b> {date}",
-            "",
-            $"<b>🕒 Hora:</b> {time}",
-            "",
-            message
+            $"""
+            <b>❌ ERRO ❌</b>
+
+            <b>📅 Data:</b> {date}
+
+            <b>🕒 Hora:</b> {time}
+
+            {message}
+            """
         );
     }
 
     public async Task SendJobFoundMessageAsync(string chatId, JobFoundMessageData data)
     {
-        string currentDate = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+        var currentDate = DateTime.Now.ToString(
+            "dd/MM/yyyy HH:mm:ss",
+            CultureInfo.InvariantCulture
+        );
 
-        string message = $"""
-        <b>🚨 NOVA VAGA ENCONTRADA - {data.JobIndex}/{data.TotalJobs} 🚨</b>
+        var message = $"""
+            <b>🚨 NOVA VAGA ENCONTRADA - {data.JobIndex}/{data.TotalJobs} 🚨</b>
 
-        <b>🕒 {currentDate}</b>
+            <b>🕒 {currentDate}</b>
 
-        <b>🔠 Título:</b> {data.Title}
+            <b>🔠 Título:</b> {data.Title}
 
-        <b>🏢 Empresa:</b> {data.Company}
+            <b>🏢 Empresa:</b> {data.Company}
 
-        <b>📍 Região:</b> {data.Region}
+            <b>📍 Região:</b> {data.Region}
 
-        <b>🔵 Simplificada:</b> {data.EasyApply}
+            <b>🔵 Simplificada:</b> {data.HasEasyApply}
 
-        <b>📅 Postagem:</b> {data.PostedTime}
+            <b>📅 Postagem:</b> {data.PostedTime}
 
-        <a href="{data.Link}"><b>🔗 Acesse aqui!</b></a>
-        """;
+            <a href="{data.Link}"><b>🔗 Acesse aqui!</b></a>
+            """;
 
-        await SendMultilineMessageAsync(chatId, message);
+        await SendTextMessageAsync(chatId, message);
     }
 
-    public async Task SendMultilineMessageAsync(string chatId, params string[] lines)
+    public async Task SendTextMessageAsync(string chatId, string message)
     {
-        string message = string.Join("\n", lines);
-
-        await _botClient.SendMessage(chatId, message, Telegram.Bot.Types.Enums.ParseMode.Html);
+        await _botClient.SendMessage(chatId, message, ParseMode.Html);
     }
 }

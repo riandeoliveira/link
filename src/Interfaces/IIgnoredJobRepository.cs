@@ -1,7 +1,5 @@
-using JobScraperBot.Models;
+using LinkJoBot.Entities;
 
-namespace JobScraperBot.Interfaces;
+namespace LinkJoBot.Interfaces;
 
-public interface IIgnoredJobRepository : IRepository<IgnoredJob>
-{
-}
+public interface IIgnoredJobRepository : IRepository<IgnoredJob> { }

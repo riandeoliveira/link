@@ -1,7 +1,5 @@
-using JobScraperBot.Models;
+using LinkJoBot.Entities;
 
-namespace JobScraperBot.Interfaces;
+namespace LinkJoBot.Interfaces;
 
-public interface IUserRepository : IRepository<User>
-{
-}
+public interface IUserRepository : IRepository<User> { }

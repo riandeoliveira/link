@@ -1,22 +1,32 @@
 using System.Linq.Expressions;
+using LinkJoBot.Entities;
 
-using JobScraperBot.Models;
+namespace LinkJoBot.Interfaces;
 
-namespace JobScraperBot.Interfaces;
-
-public interface IRepository<TModel> where TModel : BaseModel
+public interface IRepository<TEntity>
+    where TEntity : BaseEntity
 {
-    public Task<int> CountAsync(Expression<Func<TModel, bool>> predicate, CancellationToken cancellationToken);
+    public Task<int> CountAsync(
+        Expression<Func<TEntity, bool>> predicate,
+        CancellationToken cancellationToken
+    );
 
-    public Task<TModel> CreateAsync(TModel model, CancellationToken cancellationToken);
+    public Task<TEntity> CreateAsync(TEntity entity, CancellationToken cancellationToken);
 
-    public Task DeleteManyAsync(Expression<Func<TModel, bool>> predicate, CancellationToken cancellationToken);
+    public Task DeleteManyAsync(
+        Expression<Func<TEntity, bool>> predicate,
+        CancellationToken cancellationToken
+    );
 
-    public Task<bool> ExistAsync(Expression<Func<TModel, bool>> predicate, CancellationToken cancellationToken);
+    public Task<TEntity?> FindOneAsync(
+        Expression<Func<TEntity, bool>> predicate,
+        CancellationToken cancellationToken
+    );
 
-    public Task<TModel?> FindOneAsync(Expression<Func<TModel, bool>> predicate, CancellationToken cancellationToken);
+    public Task<IEnumerable<TEntity>> FindManyAsync(
+        Expression<Func<TEntity, bool>> predicate,
+        CancellationToken cancellationToken
+    );
 
-    public Task<IEnumerable<TModel>> FindManyAsync(Expression<Func<TModel, bool>> predicate, CancellationToken cancellationToken);
-
-    public Task UpdateAsync(TModel model);
+    public Task UpdateAsync(TEntity entity);
 }

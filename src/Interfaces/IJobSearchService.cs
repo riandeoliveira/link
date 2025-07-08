@@ -1,8 +1,8 @@
-using JobScraperBot.Models;
+using LinkJoBot.Entities;
 
-namespace JobScraperBot.Interfaces;
+namespace LinkJoBot.Interfaces;
 
-public interface IJobScraperService
+public interface IJobSearchService
 {
     public Task RunJobSearchAsync(User user, CancellationToken cancellationToken);
 

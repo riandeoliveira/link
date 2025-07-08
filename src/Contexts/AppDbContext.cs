@@ -1,8 +1,7 @@
-using JobScraperBot.Models;
-
+using LinkJoBot.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace JobScraperBot.Contexts;
+namespace LinkJoBot.Contexts;
 
 public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
@@ -10,16 +9,4 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<IgnoredJob> IgnoredJobs => Set<IgnoredJob>();
 
     static AppDbContext() => AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<User>()
-            .HasIndex(x => x.ChatId)
-            .IsUnique();
-
-        modelBuilder.Entity<IgnoredJob>()
-            .HasKey(x => new { x.UserId, x.JobId });
-
-        base.OnModelCreating(modelBuilder);
-    }
 }

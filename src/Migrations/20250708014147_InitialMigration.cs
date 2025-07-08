@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace JobScraperBot.Migrations
+namespace LinkJoBot.Migrations
 {
     /// <inheritdoc />
     public partial class InitialMigration : Migration
@@ -35,15 +35,15 @@ namespace JobScraperBot.Migrations
                 name: "ignored_jobs",
                 columns: table => new
                 {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     user_id = table.Column<Guid>(type: "uuid", nullable: false),
                     job_id = table.Column<string>(type: "text", nullable: false),
-                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     updated_at = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ignored_jobs", x => new { x.user_id, x.job_id });
+                    table.PrimaryKey("PK_ignored_jobs", x => x.id);
                     table.ForeignKey(
                         name: "FK_ignored_jobs_users_user_id",
                         column: x => x.user_id,
@@ -53,10 +53,9 @@ namespace JobScraperBot.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_users_chat_id",
-                table: "users",
-                column: "chat_id",
-                unique: true);
+                name: "IX_ignored_jobs_user_id",
+                table: "ignored_jobs",
+                column: "user_id");
         }
 
         /// <inheritdoc />

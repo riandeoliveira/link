@@ -1,69 +1,74 @@
 using System.Linq.Expressions;
-
-using JobScraperBot.Contexts;
-using JobScraperBot.Interfaces;
-using JobScraperBot.Models;
-
+using LinkJoBot.Contexts;
+using LinkJoBot.Entities;
+using LinkJoBot.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace JobScraperBot.Repositories;
+namespace LinkJoBot.Repositories;
 
-public abstract class Repository<TModel>(
-    AppDbContext context
-) : IRepository<TModel> where TModel : BaseModel
+public abstract class Repository<TEntity>(AppDbContext context) : IRepository<TEntity>
+    where TEntity : BaseEntity
 {
-    public async Task<int> CountAsync(Expression<Func<TModel, bool>> predicate, CancellationToken cancellationToken)
+    private readonly AppDbContext _context = context;
+
+    public async Task<int> CountAsync(
+        Expression<Func<TEntity, bool>> predicate,
+        CancellationToken cancellationToken
+    )
     {
-        return await context.Set<TModel>().CountAsync(predicate, cancellationToken);
+        return await _context.Set<TEntity>().CountAsync(predicate, cancellationToken);
     }
 
-    public async Task<TModel> CreateAsync(TModel model, CancellationToken cancellationToken)
+    public async Task<TEntity> CreateAsync(TEntity entity, CancellationToken cancellationToken)
     {
-        await context.Set<TModel>().AddAsync(model, cancellationToken);
+        await _context.Set<TEntity>().AddAsync(entity, cancellationToken);
 
-        return model;
+        return entity;
     }
 
-    public async Task DeleteManyAsync(Expression<Func<TModel, bool>> predicate, CancellationToken cancellationToken)
+    public async Task DeleteManyAsync(
+        Expression<Func<TEntity, bool>> predicate,
+        CancellationToken cancellationToken
+    )
     {
-        IEnumerable<TModel> models = await context.Set<TModel>()
+        var entities = await _context
+            .Set<TEntity>()
             .Where(predicate)
             .ToListAsync(cancellationToken);
 
-        context.Set<TModel>().RemoveRange(models);
+        _context.Set<TEntity>().RemoveRange(entities);
     }
 
-    public async Task<bool> ExistAsync(Expression<Func<TModel, bool>> predicate, CancellationToken cancellationToken)
+    public async Task<IEnumerable<TEntity>> FindManyAsync(
+        Expression<Func<TEntity, bool>> predicate,
+        CancellationToken cancellationToken
+    )
     {
-        TModel? model = await context.Set<TModel>()
-            .AsNoTracking()
-            .FirstOrDefaultAsync(predicate, cancellationToken);
-
-        return model is not null;
-    }
-
-    public async Task<IEnumerable<TModel>> FindManyAsync(Expression<Func<TModel, bool>> predicate, CancellationToken cancellationToken)
-    {
-        IEnumerable<TModel> models = await context.Set<TModel>()
+        var entities = await _context
+            .Set<TEntity>()
             .Where(predicate)
             .ToListAsync(cancellationToken);
 
-        return models;
+        return entities;
     }
 
-    public async Task<TModel?> FindOneAsync(Expression<Func<TModel, bool>> predicate, CancellationToken cancellationToken)
+    public async Task<TEntity?> FindOneAsync(
+        Expression<Func<TEntity, bool>> predicate,
+        CancellationToken cancellationToken
+    )
     {
-        TModel? model = await context.Set<TModel>()
+        var entity = await _context
+            .Set<TEntity>()
             .FirstOrDefaultAsync(predicate, cancellationToken);
 
-        return model;
+        return entity;
     }
 
-    public Task UpdateAsync(TModel model)
+    public Task UpdateAsync(TEntity entity)
     {
-        model.UpdatedAt = DateTime.UtcNow;
+        entity.UpdatedAt = DateTime.UtcNow;
 
-        context.Set<TModel>().Update(model);
+        _context.Set<TEntity>().Update(entity);
 
         return Task.CompletedTask;
     }
