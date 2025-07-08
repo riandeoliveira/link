@@ -7,10 +7,7 @@ public static class EnvironmentExtensions
 {
     public static IHostBuilder ConfigureEnvironment(this IHostBuilder builder)
     {
-        var envPath = Path.Combine(
-            Directory.GetParent(Directory.GetCurrentDirectory())!.FullName,
-            ".env"
-        );
+        var envPath = Path.Combine(AppContext.BaseDirectory, ".env");
 
         Env.Load(envPath);
 

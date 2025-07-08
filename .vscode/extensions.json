@@ -1,8 +1,8 @@
 {
-  "recommendations": [
-    "csharpier.csharpier-vscode",
-    "eamodio.gitlens",
-    "ms-dotnettools.csharp",
-    "visualstudioexptteam.vscodeintellicode"
-  ]
+    "recommendations": [
+        "csharpier.csharpier-vscode",
+        "eamodio.gitlens",
+        "ms-dotnettools.csharp",
+        "visualstudioexptteam.vscodeintellicode"
+    ]
 }

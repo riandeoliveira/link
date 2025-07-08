@@ -6,5 +6,4 @@ namespace LinkJoBot.Repositories;
 
 public sealed class UserRepository(AppDbContext context)
     : Repository<User>(context),
-        IUserRepository
-{ }
+        IUserRepository { }

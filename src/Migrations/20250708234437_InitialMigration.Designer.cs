@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace LinkJoBot.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250708014147_InitialMigration")]
+    [Migration("20250708234437_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />

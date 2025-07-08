@@ -1,7 +1,5 @@
 .env
 bin/
-database.sqlite
-logs
 NOTES.md
 obj/
 temp

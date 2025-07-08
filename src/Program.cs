@@ -14,7 +14,6 @@ internal class Program
 
         var host = Host.CreateDefaultBuilder(arguments)
             .ConfigureEnvironment()
-            .ConfigureLogging()
             .ConfigureContext()
             .ConfigureDependencies()
             .Build();

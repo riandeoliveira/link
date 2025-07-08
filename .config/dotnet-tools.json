@@ -1,18 +1,18 @@
 {
-  "version": 1,
-  "isRoot": true,
-  "tools": {
-    "dotnet-ef": {
-      "version": "8.0.1",
-      "commands": [
-        "dotnet-ef"
-      ]
-    },
-    "csharpier": {
-      "version": "1.0.3",
-      "commands": [
-        "csharpier"
-      ]
+    "version": 1,
+    "isRoot": true,
+    "tools": {
+        "dotnet-ef": {
+            "version": "8.0.1",
+            "commands": [
+                "dotnet-ef"
+            ]
+        },
+        "csharpier": {
+            "version": "1.0.3",
+            "commands": [
+                "csharpier"
+            ]
+        }
     }
-  }
 }

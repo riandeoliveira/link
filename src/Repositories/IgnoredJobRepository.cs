@@ -6,5 +6,4 @@ namespace LinkJoBot.Repositories;
 
 public sealed class IgnoredJobRepository(AppDbContext context)
     : Repository<IgnoredJob>(context),
-        IIgnoredJobRepository
-{ }
+        IIgnoredJobRepository { }

@@ -6,7 +6,7 @@ public static class EnvironmentVariables
 {
     private static T Get<T>(string key, T fallback)
     {
-        string? value = Environment.GetEnvironmentVariable(key);
+        var value = Environment.GetEnvironmentVariable(key);
 
         if (string.IsNullOrWhiteSpace(value))
         {
@@ -15,7 +15,7 @@ public static class EnvironmentVariables
 
         try
         {
-            Type targetType = typeof(T);
+            var targetType = typeof(T);
 
             if (targetType.IsEnum)
             {

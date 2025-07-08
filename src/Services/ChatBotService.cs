@@ -1,3 +1,4 @@
+using LinkJoBot.Constants;
 using LinkJoBot.Interfaces;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
@@ -27,7 +28,7 @@ public partial class ChatBotService(
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        await _botClient.SetMyCommands(GetChatBotCommands(), cancellationToken: cancellationToken);
+        await _botClient.SetMyCommands(ChatBot.Commands, cancellationToken: cancellationToken);
 
         ReceiverOptions options = new() { DropPendingUpdates = true };
 
@@ -138,5 +139,31 @@ public partial class ChatBotService(
         Console.WriteLine($"Erro no bot: {exception.Message}");
 
         return Task.CompletedTask;
+    }
+
+    public async Task<Entities.User> GetOrCreateUserByChatIdAsync(
+        string chatId,
+        CancellationToken cancellationToken
+    )
+    {
+        if (_userCache.TryGetValue(chatId, out Entities.User? cachedUser))
+            return cachedUser;
+
+        Entities.User? user = await _userRepository.FindOneAsync(
+            x => x.ChatId == chatId,
+            cancellationToken
+        );
+
+        if (user is null)
+        {
+            user = new() { ChatId = chatId };
+
+            await _userRepository.CreateAsync(user, cancellationToken);
+            await _unitOfWork.CommitAsync(cancellationToken);
+        }
+
+        _userCache[chatId] = user;
+
+        return user;
     }
 }

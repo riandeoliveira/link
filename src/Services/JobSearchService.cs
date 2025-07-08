@@ -172,7 +172,10 @@ public class JobSearchService(
             new PageWaitForSelectorOptions { Timeout = PageTimeout }
         );
 
-        await _page.EvalOnSelectorAsync(PageSelectors.JobContainer, @"el => { el.style.zoom = '10%'; }");
+        await _page.EvalOnSelectorAsync(
+            PageSelectors.JobContainer,
+            @"el => { el.style.zoom = '10%'; }"
+        );
 
         var jobCardElements = await _page.QuerySelectorAllAsync(PageSelectors.JobCard);
         var totalJobsFound = jobCardElements.Count;
@@ -260,12 +263,7 @@ public class JobSearchService(
         var uri = new Uri(_page.Url);
         var jobId = HttpUtility.ParseQueryString(uri.Query).Get("currentJobId");
 
-        if (jobId is null)
-        {
-            throw new InvalidOperationException("Job ID not found");
-        }
-
-        return jobId;
+        return jobId is not null ? jobId : throw new InvalidOperationException("Job ID not found");
     }
 
     public static string GetJobsPageUrl(JobsPageUrlParams urlParams)
