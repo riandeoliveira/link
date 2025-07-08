@@ -1,6 +1,7 @@
 using System.Globalization;
 using LinkJoBot.Interfaces;
 using LinkJoBot.Records;
+using LinkJoBot.Utils;
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
 
@@ -9,6 +10,34 @@ namespace LinkJoBot.Services;
 public class ChatBotNotifierService(ITelegramBotClient botClient) : IChatBotNotifierService
 {
     private readonly ITelegramBotClient _botClient = botClient;
+
+    public async Task SendAvailableCommandsMessageAsync(string chatId)
+    {
+        await SendTextMessageAsync(
+            chatId,
+            $"""
+            <b>📌 Comandos disponíveis:</b>
+
+            {ChatBotUtils.GetCommandLabel("help")}
+
+            {ChatBotUtils.GetCommandLabel("ignore")}
+
+            {ChatBotUtils.GetCommandLabel("keywords")}
+
+            {ChatBotUtils.GetCommandLabel("limit")}
+
+            {ChatBotUtils.GetCommandLabel("postedtime")}
+
+            {ChatBotUtils.GetCommandLabel("reset")}
+
+            {ChatBotUtils.GetCommandLabel("search")}
+
+            {ChatBotUtils.GetCommandLabel("status")}
+
+            {ChatBotUtils.GetCommandLabel("worktype")}
+            """
+        );
+    }
 
     public async Task SendErrorMessageAsync(string chatId, string message)
     {

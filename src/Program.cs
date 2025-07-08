@@ -1,4 +1,4 @@
-﻿using LinkJoBot.Constants;
+using LinkJoBot.Constants;
 using LinkJoBot.Entities;
 using LinkJoBot.Extensions;
 using LinkJoBot.Interfaces;

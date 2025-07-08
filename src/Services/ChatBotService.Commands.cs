@@ -1,5 +1,6 @@
 using LinkJoBot.Entities;
 using LinkJoBot.Enums;
+using LinkJoBot.Utils;
 using Telegram.Bot;
 using Telegram.Bot.Types.ReplyMarkups;
 
@@ -9,7 +10,7 @@ public partial class ChatBotService
 {
     public async Task HandleHelpCommandAsync(string chatId)
     {
-        await SendAvailableCommandsMessageAsync(chatId);
+        await _chatBot.SendAvailableCommandsMessageAsync(chatId);
     }
 
     public async Task HandleIgnoreCommandAsync(string chatId, CancellationToken cancellationToken)
@@ -152,29 +153,29 @@ public partial class ChatBotService
             [
                 [
                     InlineKeyboardButton.WithCallbackData(
-                        GetPostedTimeLabel(3600),
+                        JobUtils.GetPostedTimeLabel(3600),
                         "postedtime_3600"
                     ),
                     InlineKeyboardButton.WithCallbackData(
-                        GetPostedTimeLabel(14400),
+                        JobUtils.GetPostedTimeLabel(14400),
                         "postedtime_14400"
                     ),
                     InlineKeyboardButton.WithCallbackData(
-                        GetPostedTimeLabel(28800),
+                        JobUtils.GetPostedTimeLabel(28800),
                         "postedtime_28800"
                     ),
                 ],
                 [
                     InlineKeyboardButton.WithCallbackData(
-                        GetPostedTimeLabel(43200),
+                        JobUtils.GetPostedTimeLabel(43200),
                         "postedtime_43200"
                     ),
                     InlineKeyboardButton.WithCallbackData(
-                        GetPostedTimeLabel(86400),
+                        JobUtils.GetPostedTimeLabel(86400),
                         "postedtime_86400"
                     ),
                     InlineKeyboardButton.WithCallbackData(
-                        GetPostedTimeLabel(null),
+                        JobUtils.GetPostedTimeLabel(null),
                         "postedtime_null"
                     ),
                 ],
@@ -202,7 +203,7 @@ public partial class ChatBotService
         await _userRepository.UpdateAsync(user);
         await _unitOfWork.CommitAsync(cancellationToken);
 
-        string label = GetPostedTimeLabel(postedTime);
+        string label = JobUtils.GetPostedTimeLabel(postedTime);
 
         await _chatBot.SendTextMessageAsync(
             user.ChatId,
@@ -283,13 +284,13 @@ public partial class ChatBotService
             """
         );
 
-        await SendAvailableCommandsMessageAsync(chatId);
+        await _chatBot.SendAvailableCommandsMessageAsync(chatId);
     }
 
     public async Task HandleStatusCommandAsync(User user, CancellationToken cancellationToken)
     {
-        string workTypeLabel = GetWorkTypeLabel(user.WorkType);
-        string postedTimeLabel = GetPostedTimeLabel(user.PostedTime);
+        string workTypeLabel = JobUtils.GetWorkTypeLabel(user.WorkType);
+        string postedTimeLabel = JobUtils.GetPostedTimeLabel(user.PostedTime);
 
         int totalIgnoredJobs = await _ignoredJobRepository.CountAsync(
             x => x.UserId == user.Id,
@@ -334,21 +335,21 @@ public partial class ChatBotService
             [
                 [
                     InlineKeyboardButton.WithCallbackData(
-                        GetWorkTypeLabel(WorkType.OnSite),
+                        JobUtils.GetWorkTypeLabel(WorkType.OnSite),
                         "worktype_OnSite"
                     ),
                     InlineKeyboardButton.WithCallbackData(
-                        GetWorkTypeLabel(WorkType.Remote),
+                        JobUtils.GetWorkTypeLabel(WorkType.Remote),
                         "worktype_Remote"
                     ),
                 ],
                 [
                     InlineKeyboardButton.WithCallbackData(
-                        GetWorkTypeLabel(WorkType.Hybrid),
+                        JobUtils.GetWorkTypeLabel(WorkType.Hybrid),
                         "worktype_Hybrid"
                     ),
                     InlineKeyboardButton.WithCallbackData(
-                        GetWorkTypeLabel(WorkType.All),
+                        JobUtils.GetWorkTypeLabel(WorkType.All),
                         "worktype_All"
                     ),
                 ],
@@ -376,7 +377,7 @@ public partial class ChatBotService
         await _userRepository.UpdateAsync(user);
         await _unitOfWork.CommitAsync(cancellationToken);
 
-        string label = GetWorkTypeLabel(workType);
+        string label = JobUtils.GetWorkTypeLabel(workType);
 
         await _chatBot.SendTextMessageAsync(
             user.ChatId,

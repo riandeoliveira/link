@@ -172,10 +172,7 @@ public class JobSearchService(
             new PageWaitForSelectorOptions { Timeout = PageTimeout }
         );
 
-        await _page.EvalOnSelectorAsync(
-            PageSelectors.JobContainer,
-            @"el => { el.style.zoom = '10%'; }"
-        );
+        await _page.EvalOnSelectorAsync(PageSelectors.JobContainer, @"el => { el.style.zoom = '10%'; }");
 
         var jobCardElements = await _page.QuerySelectorAllAsync(PageSelectors.JobCard);
         var totalJobsFound = jobCardElements.Count;
