@@ -26,8 +26,8 @@ public static class DependenciesExtensions
             );
 
             // Services
+            services.AddScoped<IChatBotHandlerService, ChatBotHandlerService>();
             services.AddScoped<IChatBotNotifierService, ChatBotNotifierService>();
-            services.AddScoped<IChatBotService, ChatBotService>();
             services.AddScoped<IJobSearchService, JobSearchService>();
         });
 

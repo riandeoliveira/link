@@ -1,19 +1,123 @@
-using LinkJobber.Entities;
+using LinkJobber.Constants;
 using LinkJobber.Enums;
+using LinkJobber.Interfaces;
 using LinkJobber.Utils;
 using Telegram.Bot;
+using Telegram.Bot.Polling;
+using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace LinkJobber.Services;
 
-public partial class ChatBotService
+public class ChatBotHandlerService(
+    IChatBotNotifierService chatBot,
+    IIgnoredJobRepository ignoredJobRepository,
+    IJobSearchService jobSearchService,
+    ITelegramBotClient botClient,
+    IUnitOfWork unitOfWork,
+    IUserRepository userRepository
+) : IChatBotHandlerService
 {
-    public async Task HandleHelpCommandAsync(string chatId)
+    private readonly IChatBotNotifierService _chatBot = chatBot;
+    private readonly IIgnoredJobRepository _ignoredJobRepository = ignoredJobRepository;
+    private readonly IJobSearchService _jobSearchService = jobSearchService;
+    private readonly ITelegramBotClient _botClient = botClient;
+    private readonly IUnitOfWork _unitOfWork = unitOfWork;
+    private readonly IUserRepository _userRepository = userRepository;
+
+    private static readonly Dictionary<string, Entities.User> _userCache = [];
+
+    public async Task StartAsync(CancellationToken cancellationToken)
+    {
+        await _botClient.SetMyCommands(ChatBotCommands.All, cancellationToken: cancellationToken);
+
+        var options = new ReceiverOptions { DropPendingUpdates = true };
+
+        _botClient.StartReceiving(HandleUpdateAsync, HandleErrorAsync, options, cancellationToken);
+    }
+
+    private async Task<Entities.User> GetOrCreateUserByChatIdAsync(
+        string chatId,
+        CancellationToken cancellationToken
+    )
+    {
+        if (_userCache.TryGetValue(chatId, out var cachedUser))
+        {
+            return cachedUser;
+        }
+
+        var user = await _userRepository.FindOneAsync(x => x.ChatId == chatId, cancellationToken);
+
+        if (user is null)
+        {
+            user = new() { ChatId = chatId };
+
+            await _userRepository.CreateAsync(user, cancellationToken);
+            await _unitOfWork.CommitAsync(cancellationToken);
+        }
+
+        _userCache[chatId] = user;
+
+        return user;
+    }
+
+    private async Task HandleCallbackQueryAsync(
+        CallbackQuery callbackQuery,
+        CancellationToken cancellationToken
+    )
+    {
+        var chatId = callbackQuery.Message?.Chat.Id.ToString() ?? "";
+        var data = callbackQuery.Data ?? "";
+
+        var user = await GetOrCreateUserByChatIdAsync(chatId, cancellationToken);
+
+        var prefixHandlers = new Dictionary<string, Func<string, Task>>()
+        {
+            ["ignore_"] = value => HandleIgnoreCommandResponseAsync(user, value, cancellationToken),
+            ["limit_"] = value => HandleLimitCommandResponseAsync(user, value, cancellationToken),
+            ["postedtime_"] = value =>
+                HandlePostedTimeCommandResponseAsync(user, value, cancellationToken),
+            ["reset_"] = value => HandleResetCommandResponseAsync(user, value, cancellationToken),
+            ["worktype_"] = value =>
+                HandleWorkTypeCommandResponseAsync(user, value, cancellationToken),
+        };
+
+        foreach ((string prefix, Func<string, Task> handler) in prefixHandlers)
+        {
+            if (data.StartsWith(prefix))
+            {
+                var value = data[prefix.Length..];
+
+                await handler(value);
+
+                break;
+            }
+        }
+
+        await _botClient.AnswerCallbackQuery(
+            callbackQuery.Id,
+            cancellationToken: cancellationToken
+        );
+    }
+
+    private Task HandleErrorAsync(
+        ITelegramBotClient botClient,
+        Exception exception,
+        CancellationToken cancellationToken
+    )
+    {
+        return Task.CompletedTask;
+    }
+
+    private async Task HandleHelpCommandRequestAsync(string chatId)
     {
         await _chatBot.SendAvailableCommandsMessageAsync(chatId);
     }
 
-    public async Task HandleIgnoreCommandAsync(string chatId, CancellationToken cancellationToken)
+    private async Task HandleIgnoreCommandRequestAsync(
+        string chatId,
+        CancellationToken cancellationToken
+    )
     {
         InlineKeyboardMarkup inlineKeyboard = new(
             [
@@ -32,13 +136,13 @@ public partial class ChatBotService
         );
     }
 
-    public async Task HandleIgnoreCommandResponseAsync(
-        User user,
-        string response,
+    private async Task HandleIgnoreCommandResponseAsync(
+        Entities.User user,
+        string value,
         CancellationToken cancellationToken
     )
     {
-        bool ignoreJobsFound = bool.Parse(response);
+        var ignoreJobsFound = bool.Parse(value);
 
         user.IgnoreJobsFound = ignoreJobsFound;
 
@@ -61,7 +165,10 @@ public partial class ChatBotService
         }
     }
 
-    public async Task HandleKeywordsCommandAsync(User user, CancellationToken cancellationToken)
+    private async Task HandleKeywordsCommandRequestAsync(
+        Entities.User user,
+        CancellationToken cancellationToken
+    )
     {
         user.IsAwaitingForKeywords = true;
 
@@ -74,13 +181,13 @@ public partial class ChatBotService
         );
     }
 
-    public async Task HandleKeywordsCommandResponseAsync(
-        User user,
-        string response,
+    private async Task HandleKeywordsCommandResponseAsync(
+        Entities.User user,
+        string value,
         CancellationToken cancellationToken
     )
     {
-        string keywords = response.Trim();
+        var keywords = value.Trim();
 
         user.Keywords = keywords;
         user.IsAwaitingForKeywords = false;
@@ -98,7 +205,10 @@ public partial class ChatBotService
         );
     }
 
-    public async Task HandleLimitCommandAsync(string chatId, CancellationToken cancellationToken)
+    private async Task HandleLimitCommandRequestAsync(
+        string chatId,
+        CancellationToken cancellationToken
+    )
     {
         InlineKeyboardMarkup inlineKeyboard = new(
             [
@@ -121,13 +231,13 @@ public partial class ChatBotService
         );
     }
 
-    public async Task HandleLimitCommandResponseAsync(
-        User user,
-        string response,
+    private async Task HandleLimitCommandResponseAsync(
+        Entities.User user,
+        string value,
         CancellationToken cancellationToken
     )
     {
-        int limit = int.Parse(response);
+        var limit = int.Parse(value);
 
         user.Limit = limit;
 
@@ -144,7 +254,41 @@ public partial class ChatBotService
         );
     }
 
-    public async Task HandlePostedTimeCommandAsync(
+    private async Task HandleMessageAsync(Message message, CancellationToken cancellationToken)
+    {
+        var chatId = message.Chat.Id.ToString();
+        var text = message.Text!;
+
+        var user = await GetOrCreateUserByChatIdAsync(chatId, cancellationToken);
+
+        if (user.IsAwaitingForKeywords)
+        {
+            await HandleKeywordsCommandResponseAsync(user, text, cancellationToken);
+
+            return;
+        }
+
+        Dictionary<string, Func<Task>> commandHandlers = new()
+        {
+            ["/help"] = () => HandleHelpCommandRequestAsync(chatId),
+            ["/ignore"] = () => HandleIgnoreCommandRequestAsync(chatId, cancellationToken),
+            ["/keywords"] = () => HandleKeywordsCommandRequestAsync(user, cancellationToken),
+            ["/limit"] = () => HandleLimitCommandRequestAsync(chatId, cancellationToken),
+            ["/postedtime"] = () => HandlePostedTimeCommandRequestAsync(chatId, cancellationToken),
+            ["/reset"] = () => HandleResetCommandRequestAsync(chatId, cancellationToken),
+            ["/search"] = () => HandleSearchCommandRequestAsync(user, cancellationToken),
+            ["/start"] = () => HandleStartCommandRequestAsync(chatId),
+            ["/status"] = () => HandleStatusCommandRequestAsync(user, cancellationToken),
+            ["/worktype"] = () => HandleWorkTypeCommandRequestAsync(chatId, cancellationToken),
+        };
+
+        if (commandHandlers.TryGetValue(text, out var handler))
+        {
+            await handler();
+        }
+    }
+
+    private async Task HandlePostedTimeCommandRequestAsync(
         string chatId,
         CancellationToken cancellationToken
     )
@@ -190,20 +334,20 @@ public partial class ChatBotService
         );
     }
 
-    public async Task HandlePostedTimeCommandResponseAsync(
-        User user,
-        string response,
+    private async Task HandlePostedTimeCommandResponseAsync(
+        Entities.User user,
+        string value,
         CancellationToken cancellationToken
     )
     {
-        int? postedTime = int.TryParse(response, out int parsed) ? parsed : null;
+        int? postedTime = int.TryParse(value, out var parsed) ? parsed : null;
 
         user.PostedTime = postedTime;
 
         await _userRepository.UpdateAsync(user);
         await _unitOfWork.CommitAsync(cancellationToken);
 
-        string label = JobUtils.GetPostedTimeLabel(postedTime);
+        var label = JobUtils.GetPostedTimeLabel(postedTime);
 
         await _chatBot.SendTextMessageAsync(
             user.ChatId,
@@ -215,7 +359,10 @@ public partial class ChatBotService
         );
     }
 
-    public async Task HandleResetCommandAsync(string chatId, CancellationToken cancellationToken)
+    private async Task HandleResetCommandRequestAsync(
+        string chatId,
+        CancellationToken cancellationToken
+    )
     {
         InlineKeyboardMarkup inlineKeyboard = new(
             [
@@ -234,13 +381,13 @@ public partial class ChatBotService
         );
     }
 
-    public async Task HandleResetCommandResponseAsync(
-        User user,
-        string response,
+    private async Task HandleResetCommandResponseAsync(
+        Entities.User user,
+        string value,
         CancellationToken cancellationToken
     )
     {
-        bool reset = bool.Parse(response);
+        var reset = bool.Parse(value);
 
         if (!reset)
         {
@@ -268,12 +415,17 @@ public partial class ChatBotService
         );
     }
 
-    public async Task HandleSearchCommandAsync(User user, CancellationToken cancellationToken)
+    // TODO:
+
+    private async Task HandleSearchCommandRequestAsync(
+        Entities.User user,
+        CancellationToken cancellationToken
+    )
     {
         await _jobSearchService.RunJobSearchAsync(user, cancellationToken);
     }
 
-    public async Task HandleStartCommandAsync(string chatId)
+    private async Task HandleStartCommandRequestAsync(string chatId)
     {
         await _chatBot.SendTextMessageAsync(
             chatId,
@@ -287,12 +439,15 @@ public partial class ChatBotService
         await _chatBot.SendAvailableCommandsMessageAsync(chatId);
     }
 
-    public async Task HandleStatusCommandAsync(User user, CancellationToken cancellationToken)
+    private async Task HandleStatusCommandRequestAsync(
+        Entities.User user,
+        CancellationToken cancellationToken
+    )
     {
-        string workTypeLabel = JobUtils.GetWorkTypeLabel(user.WorkType);
-        string postedTimeLabel = JobUtils.GetPostedTimeLabel(user.PostedTime);
+        var workTypeLabel = JobUtils.GetWorkTypeLabel(user.WorkType);
+        var postedTimeLabel = JobUtils.GetPostedTimeLabel(user.PostedTime);
 
-        int totalIgnoredJobs = await _ignoredJobRepository.CountAsync(
+        var totalIgnoredJobs = await _ignoredJobRepository.CountAsync(
             x => x.UserId == user.Id,
             cancellationToken
         );
@@ -329,7 +484,26 @@ public partial class ChatBotService
         );
     }
 
-    public async Task HandleWorkTypeCommandAsync(string chatId, CancellationToken cancellationToken)
+    private async Task HandleUpdateAsync(
+        ITelegramBotClient botClient,
+        Update update,
+        CancellationToken cancellationToken
+    )
+    {
+        if (update.Message is { Text: { } })
+        {
+            await HandleMessageAsync(update.Message, cancellationToken);
+        }
+        else if (update.CallbackQuery?.Data is not null)
+        {
+            await HandleCallbackQueryAsync(update.CallbackQuery, cancellationToken);
+        }
+    }
+
+    private async Task HandleWorkTypeCommandRequestAsync(
+        string chatId,
+        CancellationToken cancellationToken
+    )
     {
         InlineKeyboardMarkup inlineKeyboard = new(
             [
@@ -364,20 +538,20 @@ public partial class ChatBotService
         );
     }
 
-    public async Task HandleWorkTypeCommandResponseAsync(
-        User user,
-        string response,
+    private async Task HandleWorkTypeCommandResponseAsync(
+        Entities.User user,
+        string value,
         CancellationToken cancellationToken
     )
     {
-        _ = Enum.TryParse(response, out WorkType workType);
+        _ = Enum.TryParse(value, out WorkType workType);
 
         user.WorkType = workType;
 
         await _userRepository.UpdateAsync(user);
         await _unitOfWork.CommitAsync(cancellationToken);
 
-        string label = JobUtils.GetWorkTypeLabel(workType);
+        var label = JobUtils.GetWorkTypeLabel(workType);
 
         await _chatBot.SendTextMessageAsync(
             user.ChatId,

@@ -1,6 +1,6 @@
 namespace LinkJobber.Interfaces;
 
-public interface IChatBotService
+public interface IChatBotHandlerService
 {
     public Task StartAsync(CancellationToken cancellationToken);
 }

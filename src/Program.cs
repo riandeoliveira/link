@@ -18,11 +18,11 @@ internal class Program
             .ConfigureDependencies()
             .Build();
 
-        var scraper = host.Services.GetRequiredService<IJobSearchService>();
-        var bot = host.Services.GetRequiredService<IChatBotService>();
+        var jobSearchService = host.Services.GetRequiredService<IJobSearchService>();
+        var chatBotHandlerService = host.Services.GetRequiredService<IChatBotHandlerService>();
 
-        await scraper.StartAsync(CancellationToken.None);
-        await bot.StartAsync(CancellationToken.None);
+        await jobSearchService.StartAsync(CancellationToken.None);
+        await chatBotHandlerService.StartAsync(CancellationToken.None);
 
         if (command == "--cron")
         {
@@ -37,7 +37,7 @@ internal class Program
                 IgnoreJobsFound = EnvironmentVariables.CronIgnoreJobsFound,
             };
 
-            await scraper.RunJobSearchAsync(user, CancellationToken.None);
+            await jobSearchService.RunJobSearchAsync(user, CancellationToken.None);
         }
 
         await host.RunAsync();

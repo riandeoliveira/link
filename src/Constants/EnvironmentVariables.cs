@@ -31,14 +31,14 @@ public static class EnvironmentVariables
 
             if (targetType == typeof(Guid))
             {
-                var parsed = Guid.TryParse(value, out Guid guidResult);
+                var parsed = Guid.TryParse(value, out var guidResult);
 
                 return parsed ? (T)(object)guidResult : fallback;
             }
 
             if (targetType == typeof(bool))
             {
-                var parsed = bool.TryParse(value, out bool boolResult);
+                var parsed = bool.TryParse(value, out var boolResult);
 
                 return parsed ? (T)(object)boolResult : fallback;
             }
