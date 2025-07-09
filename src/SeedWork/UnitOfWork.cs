@@ -3,7 +3,7 @@ using LinkJobber.Interfaces;
 
 namespace LinkJobber.SeedWork;
 
-public sealed class UnitOfWork(AppDbContext context) : IUnitOfWork
+public class UnitOfWork(AppDbContext context) : IUnitOfWork
 {
     private readonly AppDbContext _context = context;
 

@@ -4,6 +4,4 @@ using LinkJobber.Interfaces;
 
 namespace LinkJobber.Repositories;
 
-public sealed class UserRepository(AppDbContext context)
-    : Repository<User>(context),
-        IUserRepository { }
+public class UserRepository(AppDbContext context) : Repository<User>(context), IUserRepository { }

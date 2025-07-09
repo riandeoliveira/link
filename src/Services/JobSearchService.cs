@@ -16,7 +16,7 @@ public class JobSearchService(
     IUnitOfWork unitOfWork
 ) : IJobSearchService
 {
-    private const int PageTimeout = 10000;
+    private const int PageTimeout = 10000; // 10s
 
     private readonly IChatBotNotifierService _chatBot = chatBot;
     private readonly IIgnoredJobRepository _ignoredJobRepository = ignoredJobRepository;
@@ -29,7 +29,7 @@ public class JobSearchService(
 
     private static readonly ConcurrentDictionary<Guid, IList<IgnoredJob>> _jobCache = new();
 
-    private IPage? _page;
+    private static IPage? _page;
 
     public async Task RunJobSearchAsync(User user, CancellationToken cancellationToken)
     {
@@ -100,19 +100,18 @@ public class JobSearchService(
 
                 var jobLink = $"https://www.linkedin.com/jobs/view/{jobId}";
 
-                await _chatBot.SendJobFoundMessageAsync(
-                    user.ChatId,
-                    new JobFoundMessageData(
-                        Title: job.Title ?? "Indefinido",
-                        Company: job.Company ?? "Indefinido",
-                        Region: job.Region ?? "Indefinido",
-                        HasEasyApply: job.HasEasyApply ? "Sim" : "Não",
-                        PostedTime: job.PostedTime ?? "Indefinido",
-                        JobIndex: (index + 1).ToString(),
-                        TotalJobs: availableLimit.ToString(),
-                        Link: jobLink
-                    )
+                var JobFoundMessageData = new JobFoundMessageData(
+                    Title: job.Title ?? "Indefinido",
+                    Company: job.Company ?? "Indefinido",
+                    Region: job.Region ?? "Indefinido",
+                    HasEasyApply: job.HasEasyApply ? "Sim" : "Não",
+                    PostedTime: job.PostedTime ?? "Indefinido",
+                    JobIndex: (index + 1).ToString(),
+                    TotalJobs: availableLimit.ToString(),
+                    Link: jobLink
                 );
+
+                await _chatBot.SendJobFoundMessageAsync(user.ChatId, JobFoundMessageData);
             }
         );
 
@@ -151,7 +150,7 @@ public class JobSearchService(
         _page = await browser.NewPageAsync();
     }
 
-    private async Task AccessJobsPage(User user)
+    private static async Task AccessJobsPage(User user)
     {
         var urlParams = new JobsPageUrlParams(
             PostedTime: user.PostedTime.HasValue ? $"r{user.PostedTime}" : null,
@@ -202,14 +201,9 @@ public class JobSearchService(
         return availableLimit;
     }
 
-    private async Task ForEachJobAsync(int limit, Func<JobInfo, int, Task> processJob)
+    private static async Task ForEachJobAsync(int limit, Func<JobInfo, int, Task> processJob)
     {
-        if (_page is null)
-        {
-            throw new InvalidOperationException("Page not initialized");
-        }
-
-        var jobCardFooterHandles = await _page.QuerySelectorAllAsync(PageSelectors.JobCardFooter);
+        var jobCardFooterHandles = await _page!.QuerySelectorAllAsync(PageSelectors.JobCardFooter);
         var jobLinkHandles = await _page.QuerySelectorAllAsync(PageSelectors.JobLink);
         var jobCompanyHandle = await _page.QuerySelectorAsync(PageSelectors.JobCompany);
         var jobInfoHandle = await _page.QuerySelectorAsync(PageSelectors.JobInfo);
@@ -253,20 +247,15 @@ public class JobSearchService(
         }
     }
 
-    private string GetJobId()
+    private static string GetJobId()
     {
-        if (_page is null)
-        {
-            throw new InvalidOperationException("Page not initialized");
-        }
-
-        var uri = new Uri(_page.Url);
+        var uri = new Uri(_page!.Url);
         var jobId = HttpUtility.ParseQueryString(uri.Query).Get("currentJobId");
 
         return jobId is not null ? jobId : throw new InvalidOperationException("Job ID not found");
     }
 
-    public static string GetJobsPageUrl(JobsPageUrlParams urlParams)
+    private static string GetJobsPageUrl(JobsPageUrlParams urlParams)
     {
         var baseUrl = "https://www.linkedin.com/jobs/search";
         var searchParams = HttpUtility.ParseQueryString(string.Empty);
@@ -289,19 +278,14 @@ public class JobSearchService(
         return $"{baseUrl}?{searchParams}";
     }
 
-    public async Task LoadCookiesAsync()
+    public static async Task LoadCookiesAsync()
     {
-        if (_page is null)
-        {
-            throw new InvalidOperationException("Page not initialized");
-        }
-
         var cookiesJson = await File.ReadAllTextAsync("../temp/cookies.json");
         var cookies = JsonSerializer.Deserialize<IEnumerable<Cookie>>(cookiesJson, JsonOptions);
 
         if (cookies is not null)
         {
-            await _page.Context.AddCookiesAsync(cookies);
+            await _page!.Context.AddCookiesAsync(cookies);
         }
     }
 }

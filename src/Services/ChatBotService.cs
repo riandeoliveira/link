@@ -17,7 +17,6 @@ public partial class ChatBotService(
     IUserRepository userRepository
 ) : IChatBotService
 {
-    private readonly Dictionary<string, Entities.User> _userCache = [];
     private readonly IChatBotNotifierService _chatBot = chatBot;
     private readonly IIgnoredJobRepository _ignoredJobRepository = ignoredJobRepository;
     private readonly IJobSearchService _jobSearchService = jobSearchService;
@@ -25,6 +24,8 @@ public partial class ChatBotService(
     private readonly ITelegramBotClient _botClient = botClient;
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
     private readonly IUserRepository _userRepository = userRepository;
+
+    private static readonly Dictionary<string, Entities.User> _userCache = [];
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {

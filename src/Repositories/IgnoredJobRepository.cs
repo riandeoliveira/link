@@ -4,6 +4,6 @@ using LinkJobber.Interfaces;
 
 namespace LinkJobber.Repositories;
 
-public sealed class IgnoredJobRepository(AppDbContext context)
+public class IgnoredJobRepository(AppDbContext context)
     : Repository<IgnoredJob>(context),
         IIgnoredJobRepository { }

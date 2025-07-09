@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace LinkJobber.Entities;
 
 [Table("ignored_jobs")]
-public sealed class IgnoredJob : BaseEntity
+public class IgnoredJob : BaseEntity
 {
     [Column("user_id")]
     public required Guid UserId { get; set; }
@@ -11,6 +11,5 @@ public sealed class IgnoredJob : BaseEntity
     [Column("job_id")]
     public required string JobId { get; set; }
 
-    [ForeignKey("UserId")]
-    public User? User { get; set; }
+    public User User { get; set; } = null!;
 }

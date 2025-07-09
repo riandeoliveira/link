@@ -67,7 +67,9 @@ public class ChatBotNotifierService(ITelegramBotClient botClient) : IChatBotNoti
             CultureInfo.InvariantCulture
         );
 
-        var message = $"""
+        await SendTextMessageAsync(
+            chatId,
+            $"""
             <b>🚨 NOVA VAGA ENCONTRADA - {data.JobIndex}/{data.TotalJobs} 🚨</b>
 
             <b>🕒 {currentDate}</b>
@@ -83,9 +85,8 @@ public class ChatBotNotifierService(ITelegramBotClient botClient) : IChatBotNoti
             <b>📅 Postagem:</b> {data.PostedTime}
 
             <a href="{data.Link}"><b>🔗 Acesse aqui!</b></a>
-            """;
-
-        await SendTextMessageAsync(chatId, message);
+            """
+        );
     }
 
     public async Task SendTextMessageAsync(string chatId, string message)
