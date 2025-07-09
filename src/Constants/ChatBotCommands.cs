@@ -2,9 +2,9 @@ using Telegram.Bot.Types;
 
 namespace LinkJobber.Constants;
 
-public static class ChatBot
+public static class ChatBotCommands
 {
-    public static readonly IReadOnlyList<BotCommand> Commands =
+    public static readonly IReadOnlyList<BotCommand> All =
     [
         new() { Command = "help", Description = "📖 Exibir todos os comandos disponíveis" },
         new()

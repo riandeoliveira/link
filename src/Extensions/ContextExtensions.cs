@@ -13,7 +13,7 @@ public static class ContextExtensions
         builder.ConfigureServices(
             (context, services) =>
                 services.AddDbContext<AppDbContext>(options =>
-                    options.UseNpgsql(Database.ConnectionString)
+                    options.UseNpgsql(DatabaseAccess.ConnectionString)
                 )
         );
 

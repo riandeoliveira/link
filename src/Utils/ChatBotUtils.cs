@@ -7,7 +7,7 @@ public static class ChatBotUtils
 {
     public static string GetCommandLabel(string commandName)
     {
-        BotCommand? command = ChatBot.Commands.FirstOrDefault(x =>
+        var command = ChatBotCommands.All.FirstOrDefault(x =>
             x.Command.Equals(commandName, StringComparison.OrdinalIgnoreCase)
         );
 

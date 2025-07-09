@@ -1,6 +1,6 @@
 namespace LinkJobber.Constants;
 
-public static class Database
+public static class DatabaseAccess
 {
     public static string ConnectionString =>
         $@"

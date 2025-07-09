@@ -28,7 +28,7 @@ public partial class ChatBotService(
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        await _botClient.SetMyCommands(ChatBot.Commands, cancellationToken: cancellationToken);
+        await _botClient.SetMyCommands(ChatBotCommands.All, cancellationToken: cancellationToken);
 
         ReceiverOptions options = new() { DropPendingUpdates = true };
 
