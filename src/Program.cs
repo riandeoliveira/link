@@ -1,7 +1,7 @@
-using LinkJoBot.Constants;
-using LinkJoBot.Entities;
-using LinkJoBot.Extensions;
-using LinkJoBot.Interfaces;
+using LinkJobber.Constants;
+using LinkJobber.Entities;
+using LinkJobber.Extensions;
+using LinkJobber.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 

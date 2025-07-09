@@ -1,7 +1,7 @@
-using LinkJoBot.Constants;
+using LinkJobber.Constants;
 using Telegram.Bot.Types;
 
-namespace LinkJoBot.Utils;
+namespace LinkJobber.Utils;
 
 public static class ChatBotUtils
 {

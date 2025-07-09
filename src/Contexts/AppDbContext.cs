@@ -1,7 +1,7 @@
-using LinkJoBot.Entities;
+using LinkJobber.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace LinkJoBot.Contexts;
+namespace LinkJobber.Contexts;
 
 public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {

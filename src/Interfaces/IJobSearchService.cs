@@ -1,6 +1,6 @@
-using LinkJoBot.Entities;
+using LinkJobber.Entities;
 
-namespace LinkJoBot.Interfaces;
+namespace LinkJobber.Interfaces;
 
 public interface IJobSearchService
 {

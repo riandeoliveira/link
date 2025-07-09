@@ -1,7 +1,7 @@
 using DotNetEnv;
 using Microsoft.Extensions.Hosting;
 
-namespace LinkJoBot.Extensions;
+namespace LinkJobber.Extensions;
 
 public static class EnvironmentExtensions
 {

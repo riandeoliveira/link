@@ -1,4 +1,4 @@
-PROJECT_PATH = src/LinkJoBot.csproj
+PROJECT_PATH = src/LinkJobber.csproj
 
 add-migration:
 	@read -p "Migration name: " migration; \

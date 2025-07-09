@@ -1,4 +1,4 @@
-namespace LinkJoBot.Enums;
+namespace LinkJobber.Enums;
 
 public enum WorkType
 {

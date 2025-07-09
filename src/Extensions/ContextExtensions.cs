@@ -1,10 +1,10 @@
-using LinkJoBot.Constants;
-using LinkJoBot.Contexts;
+using LinkJobber.Constants;
+using LinkJobber.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace LinkJoBot.Extensions;
+namespace LinkJobber.Extensions;
 
 public static class ContextExtensions
 {

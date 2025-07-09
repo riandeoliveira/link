@@ -1,11 +1,11 @@
-using LinkJoBot.Constants;
-using LinkJoBot.Interfaces;
+using LinkJobber.Constants;
+using LinkJobber.Interfaces;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 
-namespace LinkJoBot.Services;
+namespace LinkJobber.Services;
 
 public partial class ChatBotService(
     IChatBotNotifierService chatBot,

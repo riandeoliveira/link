@@ -1,13 +1,13 @@
-using LinkJoBot.Constants;
-using LinkJoBot.Interfaces;
-using LinkJoBot.Repositories;
-using LinkJoBot.SeedWork;
-using LinkJoBot.Services;
+using LinkJobber.Constants;
+using LinkJobber.Interfaces;
+using LinkJobber.Repositories;
+using LinkJobber.SeedWork;
+using LinkJobber.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Telegram.Bot;
 
-namespace LinkJoBot.Extensions;
+namespace LinkJobber.Extensions;
 
 public static class DependenciesExtensions
 {

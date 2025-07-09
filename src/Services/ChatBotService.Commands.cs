@@ -1,10 +1,10 @@
-using LinkJoBot.Entities;
-using LinkJoBot.Enums;
-using LinkJoBot.Utils;
+using LinkJobber.Entities;
+using LinkJobber.Enums;
+using LinkJobber.Utils;
 using Telegram.Bot;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace LinkJoBot.Services;
+namespace LinkJobber.Services;
 
 public partial class ChatBotService
 {
@@ -278,7 +278,7 @@ public partial class ChatBotService
         await _chatBot.SendTextMessageAsync(
             chatId,
             """
-            <b>👋 Olá! Eu sou o LinkJoBot 👋</b>
+            <b>👋 Olá! Eu sou o LinkJobber 👋</b>
 
             Vou te ajudar a encontrar vagas no LinkedIn de forma automática, com base nas suas preferências!
             """

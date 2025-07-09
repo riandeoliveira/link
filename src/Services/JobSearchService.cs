@@ -2,13 +2,13 @@ using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Web;
-using LinkJoBot.Constants;
-using LinkJoBot.Entities;
-using LinkJoBot.Interfaces;
-using LinkJoBot.Records;
+using LinkJobber.Constants;
+using LinkJobber.Entities;
+using LinkJobber.Interfaces;
+using LinkJobber.Records;
 using Microsoft.Playwright;
 
-namespace LinkJoBot.Services;
+namespace LinkJobber.Services;
 
 public class JobSearchService(
     IChatBotNotifierService chatBot,

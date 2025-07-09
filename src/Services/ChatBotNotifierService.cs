@@ -1,11 +1,11 @@
 using System.Globalization;
-using LinkJoBot.Interfaces;
-using LinkJoBot.Records;
-using LinkJoBot.Utils;
+using LinkJobber.Interfaces;
+using LinkJobber.Records;
+using LinkJobber.Utils;
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
 
-namespace LinkJoBot.Services;
+namespace LinkJobber.Services;
 
 public class ChatBotNotifierService(ITelegramBotClient botClient) : IChatBotNotifierService
 {

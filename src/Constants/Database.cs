@@ -1,4 +1,4 @@
-namespace LinkJoBot.Constants;
+namespace LinkJobber.Constants;
 
 public static class Database
 {

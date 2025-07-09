@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
-using LinkJoBot.Enums;
+using LinkJobber.Enums;
 
-namespace LinkJoBot.Entities;
+namespace LinkJobber.Entities;
 
 [Table("users")]
 public sealed class User : BaseEntity

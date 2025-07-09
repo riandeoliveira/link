@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
-using LinkJoBot.Entities;
+using LinkJobber.Entities;
 
-namespace LinkJoBot.Interfaces;
+namespace LinkJobber.Interfaces;
 
 public interface IRepository<TEntity>
     where TEntity : BaseEntity

@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace LinkJoBot.Entities;
+namespace LinkJobber.Entities;
 
 public abstract class BaseEntity
 {

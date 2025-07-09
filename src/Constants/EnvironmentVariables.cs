@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace LinkJoBot.Constants;
+namespace LinkJobber.Constants;
 
 public static class EnvironmentVariables
 {

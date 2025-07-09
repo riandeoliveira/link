@@ -1,4 +1,4 @@
-namespace LinkJoBot.Interfaces;
+namespace LinkJobber.Interfaces;
 
 public interface IChatBotService
 {

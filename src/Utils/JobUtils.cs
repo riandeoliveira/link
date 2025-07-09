@@ -1,6 +1,6 @@
-using LinkJoBot.Enums;
+using LinkJobber.Enums;
 
-namespace LinkJoBot.Utils;
+namespace LinkJobber.Utils;
 
 public static class JobUtils
 {

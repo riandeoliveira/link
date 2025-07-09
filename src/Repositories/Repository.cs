@@ -1,10 +1,10 @@
 using System.Linq.Expressions;
-using LinkJoBot.Contexts;
-using LinkJoBot.Entities;
-using LinkJoBot.Interfaces;
+using LinkJobber.Contexts;
+using LinkJobber.Entities;
+using LinkJobber.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace LinkJoBot.Repositories;
+namespace LinkJobber.Repositories;
 
 public abstract class Repository<TEntity>(AppDbContext context) : IRepository<TEntity>
     where TEntity : BaseEntity

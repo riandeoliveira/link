@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace LinkJoBot.Entities;
+namespace LinkJobber.Entities;
 
 [Table("ignored_jobs")]
 public sealed class IgnoredJob : BaseEntity

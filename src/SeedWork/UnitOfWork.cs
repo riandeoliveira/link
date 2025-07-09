@@ -1,7 +1,7 @@
-using LinkJoBot.Contexts;
-using LinkJoBot.Interfaces;
+using LinkJobber.Contexts;
+using LinkJobber.Interfaces;
 
-namespace LinkJoBot.SeedWork;
+namespace LinkJobber.SeedWork;
 
 public sealed class UnitOfWork(AppDbContext context) : IUnitOfWork
 {

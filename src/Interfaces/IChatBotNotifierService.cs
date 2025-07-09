@@ -1,6 +1,6 @@
-using LinkJoBot.Records;
+using LinkJobber.Records;
 
-namespace LinkJoBot.Interfaces;
+namespace LinkJobber.Interfaces;
 
 public interface IChatBotNotifierService
 {

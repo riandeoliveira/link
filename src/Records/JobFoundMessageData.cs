@@ -1,4 +1,4 @@
-namespace LinkJoBot.Records;
+namespace LinkJobber.Records;
 
 public record JobFoundMessageData(
     string Title,
