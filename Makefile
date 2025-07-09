@@ -11,5 +11,7 @@ migrate:
 	@dotnet ef database update $(PROJECT_PATH)
 
 run:
-	@docker compose up -d
 	@dotnet run --project $(PROJECT_PATH)
+
+up:
+	@docker compose up -d
