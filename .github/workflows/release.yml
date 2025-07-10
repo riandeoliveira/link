@@ -14,24 +14,7 @@ jobs:
 
         steps:
             - name: Checkout code
-              uses: actions/checkout@v3
-
-            - name: Setup .NET
-              uses: actions/setup-dotnet@v3
-              with:
-                  dotnet-version: "8.x"
-
-            - name: Create dummy .env file
-              run: echo "FAKE_ENV_FOR_BUILD=1" > .env
-
-            - name: Restore dependencies
-              run: dotnet restore src/LinkJobber.csproj
-
-            - name: Build
-              run: dotnet build src/LinkJobber.csproj --configuration Release --no-restore
-
-            - name: Publish
-              run: dotnet publish src/LinkJobber.csproj -c Release -o out
+              uses: actions/checkout@v2
 
             - name: Get version from .csproj
               id: get_version
@@ -42,8 +25,8 @@ jobs:
             - name: Get current date
               id: get_date
               run: |
-                  DATE=$(date +"%B %d, %Y")
-                  echo "DATE=$DATE" >> $GITHUB_ENV
+                  DATE=$(date +"%B, %d, %Y")
+                  echo "DATE=${DATE}" >> $GITHUB_ENV
 
             - name: Create GitHub Release
               id: create_release
@@ -51,16 +34,5 @@ jobs:
               with:
                   tag_name: v${{ env.VERSION }}
                   name: v${{ env.VERSION }} (${{ env.DATE }})
-                  body: "Release automatically generated from main branch"
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-            - name: Upload artifacts to release
-              uses: actions/upload-release-asset@v1
-              with:
-                  upload_url: ${{ steps.create_release.outputs.upload_url }}
-                  asset_path: out/LinkJobber.dll
-                  asset_name: LinkJobber.dll
-                  asset_content_type: application/octet-stream
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
