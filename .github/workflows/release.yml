@@ -22,7 +22,7 @@ jobs:
                   dotnet-version: "8.x"
 
             - name: Create dummy .env file
-              run: echo "ENV_VAR=1" > .env
+              run: echo "FAKE_ENV_FOR_BUILD=1" > .env
 
             - name: Restore dependencies
               run: dotnet restore src/LinkJobber.csproj
@@ -46,6 +46,7 @@ jobs:
                   echo "DATE=$DATE" >> $GITHUB_ENV
 
             - name: Create GitHub Release
+              id: create_release
               uses: softprops/action-gh-release@v1
               with:
                   tag_name: v${{ env.VERSION }}
@@ -54,9 +55,12 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: Upload artifacts
-              uses: softprops/action-gh-release@v1
+            - name: Upload artifacts to release
+              uses: actions/upload-release-asset@v1
               with:
-                  files: out/**
+                  upload_url: ${{ steps.create_release.outputs.upload_url }}
+                  asset_path: out/LinkJobber.dll
+                  asset_name: LinkJobber.dll
+                  asset_content_type: application/octet-stream
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
