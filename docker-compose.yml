@@ -1,5 +1,5 @@
 services:
-    postgres:
+    link-jobber-db:
         image: postgres:16
         container_name: ${DATABASE_NAME}
         restart: unless-stopped
@@ -22,7 +22,26 @@ services:
         ports:
             - "5050:80"
         depends_on:
-            - postgres
+            - link-jobber-db
+
+    link-jobber-app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: link-jobber-app
+        restart: unless-stopped
+        environment:
+            CHAT_BOT_TOKEN: ${CHAT_BOT_TOKEN}
+            HEADLESS_MODE: ${HEADLESS_MODE}
+            CRON_CHAT_ID: ${CRON_CHAT_ID}
+            CRON_IGNORE_JOBS_FOUND: ${CRON_IGNORE_JOBS_FOUND}
+            CRON_KEYWORDS: ${CRON_KEYWORDS}
+            CRON_LIMIT: ${CRON_LIMIT}
+            CRON_POSTED_TIME: ${CRON_POSTED_TIME}
+            CRON_USER_ID: ${CRON_USER_ID}
+            CRON_WORK_TYPE: ${CRON_WORK_TYPE}
+        depends_on:
+            - link-jobber-db
 
 volumes:
     pgdata:
