@@ -14,33 +14,46 @@ jobs:
 
         steps:
             - name: Checkout code
-              uses: actions/checkout@v2
+              uses: actions/checkout@v3
 
-            - name: Set up Node.js
-              uses: actions/setup-node@v2
+            - name: Setup .NET
+              uses: actions/setup-dotnet@v3
               with:
-                  node-version: "20"
+                  dotnet-version: "8.x"
 
-            - name: Install dependencies
-              run: npm install
+            - name: Restore dependencies
+              run: dotnet restore src/LinkJobber.csproj
 
-            - name: Get current version
+            - name: Build
+              run: dotnet build src/LinkJobber.csproj --configuration Release --no-restore
+
+            - name: Publish
+              run: dotnet publish src/LinkJobber.csproj -c Release -o out
+
+            - name: Get version from .csproj
               id: get_version
               run: |
-                  VERSION=$(jq -r .version package.json)
-                  echo "VERSION=${VERSION}" >> $GITHUB_ENV
+                  VERSION=$(grep -oPm1 "(?<=<Version>)[^<]+" src/LinkJobber.csproj)
+                  echo "VERSION=$VERSION" >> $GITHUB_ENV
 
             - name: Get current date
               id: get_date
               run: |
-                  DATE=$(date +"%B, %d, %Y")
-                  echo "DATE=${DATE}" >> $GITHUB_ENV
+                  DATE=$(date +"%B %d, %Y")
+                  echo "DATE=$DATE" >> $GITHUB_ENV
 
-            - name: Create Release
-              id: create_release
+            - name: Create GitHub Release
               uses: softprops/action-gh-release@v1
               with:
                   tag_name: v${{ env.VERSION }}
                   name: v${{ env.VERSION }} (${{ env.DATE }})
+                  body: "Release automatically generated from main branch"
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Upload artifacts
+              uses: softprops/action-gh-release@v1
+              with:
+                  files: out/**
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
