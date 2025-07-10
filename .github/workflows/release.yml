@@ -21,6 +21,9 @@ jobs:
               with:
                   dotnet-version: "8.x"
 
+            - name: Create dummy .env file
+              run: echo "ENV_VAR=1" > .env
+
             - name: Restore dependencies
               run: dotnet restore src/LinkJobber.csproj
 
