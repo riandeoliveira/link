@@ -21,6 +21,7 @@ public static class ChatBotCommands
         },
         new() { Command = "reset", Description = "♻️ Redefinir todas as configurações atuais" },
         new() { Command = "search", Description = "🔎 Iniciar a busca de vagas no LinkedIn" },
+        new() { Command = "start", Description = "🚀 Iniciar o bot" },
         new() { Command = "status", Description = "📋 Ver as configurações atuais" },
         new()
         {
